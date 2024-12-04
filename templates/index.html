@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Farejador de Editais</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <!-- Importando a fonte Ubuntu -->
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Custom styles -->
+    <style>
+        /* Aplicando a fonte Ubuntu */
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background-color: #f5f5f5;
+            color: #202124;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Modo escuro */
+        body.dark-mode {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+
+        /* Header personalizado */
+        header {
+            background-color: #004070;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        header img {
+            max-height: 40px;
+        }
+
+        /* Botão de alternância do modo escuro */
+        .toggle-dark-mode {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Container principal ajustado para considerar o header fixo */
+        .container {
+            margin-top: 80px;
+            padding: 20px;
+            max-width: 1200px;
+        }
+
+        /* Título centralizado */
+        h1 {
+            text-align: center;
+            color: #004070;
+            margin-bottom: 30px;
+        }
+
+        body.dark-mode h1 {
+            color: #f5c200;
+        }
+
+        /* Botão estilizado */
+        .btn-custom {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px; /* Espaçamento entre botões */
+        }
+
+        .btn-custom:hover {
+            background-color: #218838;
+        }
+
+        body.dark-mode .btn-custom {
+            background-color: #f5c200;
+            color: black;
+        }
+
+        body.dark-mode .btn-custom:hover {
+            background-color: #d94d2b;
+        }
+
+        /* Botões de exportação */
+        .btn-export-pdf {
+            background-color: #dc3545; /* Vermelho */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-export-pdf:hover {
+            background-color: #c82333;
+        }
+
+        .btn-export-excel {
+            background-color: #28a745; /* Verde */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-export-excel:hover {
+            background-color: #218838;
+        }
+
+        body.dark-mode .btn-export-pdf {
+            background-color: #a71d2a;
+            color: white;
+        }
+
+        body.dark-mode .btn-export-pdf:hover {
+            background-color: #881337;
+        }
+
+        body.dark-mode .btn-export-excel {
+            background-color: #1e7e34;
+            color: white;
+        }
+
+        body.dark-mode .btn-export-excel:hover {
+            background-color: #1c7430;
+        }
+
+        /* Alertas personalizadas */
+        .alert {
+            border-radius: 5px;
+        }
+
+        /* Tabela de resultados */
+        .table-results {
+            margin-top: 30px;
+        }
+
+        .table-results th, .table-results td {
+            vertical-align: middle;
+        }
+
+        .table-results th:nth-child(1),
+        .table-results td:nth-child(1) {
+            text-align: left;
+        }
+
+        .table-results th:nth-child(2),
+        .table-results td:nth-child(2),
+        .table-results th:nth-child(3),
+        .table-results td:nth-child(3),
+        .table-results th:nth-child(4),
+        .table-results td:nth-child(4) {
+            text-align: center;
+        }
+
+        /* Esconder a quinta coluna (URL) */
+        .hidden-column {
+            display: none;
+        }
+
+        body.dark-mode .table-results {
+            background-color: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .table-results thead {
+            background-color: #555;
+        }
+
+        body.dark-mode .table-results tbody tr:nth-child(even) {
+            background-color: #444;
+        }
+
+        body.dark-mode .table-results tbody tr:nth-child(odd) {
+            background-color: #333;
+        }
+
+        body.dark-mode .table-results th, 
+        body.dark-mode .table-results td {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div>
+            <img src="{{ url_for('static', filename='logotipo.png') }}" alt="Logotipo" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x40?text=Logo';">
+        </div>
+        <div>
+            <span class="toggle-dark-mode" id="darkModeToggle">🌙</span>
+        </div>
+    </header>
+
+    <!-- Container Principal -->
+    <div class="container">
+        <h1>Farejador de Editais</h1>
+        
+        <!-- Informações sobre as fontes -->
+        <p class="text-center">Este farejador coleta editais das seguintes fontes: <strong>FAPERJ</strong>, <strong>CAPES</strong> e <strong>FINEP</strong>.</p>
+
+        <!-- Mensagens de Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category == 'success' else 'warning' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Formulário para Atualizar Dados -->
+        <form method="GET" id="updateForm">
+            <div class="form-group">
+                <label for="ano">Selecione o Ano do Edital:</label>
+                <select class="form-control" id="ano" name="ano" required>
+                    {% for ano in anos %}
+                        <option value="{{ ano }}" {% if selected_year and ano == selected_year %}selected{% endif %}>{{ ano }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-custom">Atualizar Dados</button>
+            </div>
+        </form>
+
+        <!-- Abas para cada fonte -->
+        <div id="resultsSection" style="display: none;">
+            <h2 class="mt-5">Resultados da Extração</h2>
+            
+            <!-- Botões de Exportação -->
+            <div class="mb-3">
+                <button class="btn-export-pdf" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn-export-excel" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Planilha</button>
+            </div>
+
+            <div class="tab-section">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="faperj-tab" data-toggle="tab" href="#faperj" role="tab" aria-controls="faperj" aria-selected="true">FAPERJ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="capes-tab" data-toggle="tab" href="#capes" role="tab" aria-controls="capes" aria-selected="false">CAPES</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="finep-tab" data-toggle="tab" href="#finep" role="tab" aria-controls="finep" aria-selected="false">FINEP</a>
+                    </li>
+                    <!-- Adicione mais abas conforme novas fontes forem adicionadas -->
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="faperj" role="tabpanel" aria-labelledby="faperj-tab">
+                        <div class="table-responsive table-results">
+                            <table class="table table-striped table-bordered" id="faperjTable">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Link</th>
+                                        <th>Origem</th>
+                                        <th>Ano</th>
+                                        <th class="hidden-column">URL</th> <!-- Coluna Oculta -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dados serão inseridos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="capes" role="tabpanel" aria-labelledby="capes-tab">
+                        <div class="table-responsive table-results">
+                            <table class="table table-striped table-bordered" id="capesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Link</th>
+                                        <th>Origem</th>
+                                        <th>Ano</th>
+                                        <th class="hidden-column">URL</th> <!-- Coluna Oculta -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dados serão inseridos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="finep" role="tabpanel" aria-labelledby="finep-tab">
+                        <div class="table-responsive table-results">
+                            <table class="table table-striped table-bordered" id="finepTable">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Link</th>
+                                        <th>Origem</th>
+                                        <th>Ano</th>
+                                        <th class="hidden-column">URL</th> <!-- Coluna Oculta -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dados serão inseridos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Adicione mais abas de tabela conforme novas fontes forem adicionadas -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts do Bootstrap e Font Awesome -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF AutoTable Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Script para Dark Mode, SweetAlert e Exportação -->
+    <script>
+        const toggleDarkMode = document.getElementById('darkModeToggle');
+        const bodyElement = document.body;
+
+        // Função para alternar o modo escuro
+        function toggleMode() {
+            const isDarkMode = bodyElement.classList.toggle('dark-mode');
+            toggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        }
+
+        // Carregar preferência do usuário ao iniciar
+        function loadDarkModePreference() {
+            const darkModePreference = localStorage.getItem('darkMode');
+            if (darkModePreference === 'enabled') {
+                bodyElement.classList.add('dark-mode');
+                toggleDarkMode.textContent = '☀️';
+            } else {
+                toggleDarkMode.textContent = '🌙';
+            }
+        }
+
+        // Adicionar evento de clique ao botão de alternância
+        toggleDarkMode.addEventListener('click', toggleMode);
+
+        // Carregar a preferência quando a página for carregada
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDarkModePreference();
+        });
+
+        const updateForm = document.getElementById('updateForm');
+        const resultsSection = document.getElementById('resultsSection');
+
+        // Função para renderizar os dados
+        function renderData(data) {
+            // Limpar tabelas existentes
+            const faperjTableBody = document.querySelector('#faperjTable tbody');
+            const capesTableBody = document.querySelector('#capesTable tbody');
+            const finepTableBody = document.querySelector('#finepTable tbody');
+            faperjTableBody.innerHTML = '';
+            capesTableBody.innerHTML = '';
+            finepTableBody.innerHTML = '';
+
+            // Filtrar dados por origem
+            const faperjData = data.filter(item => item.Origem === 'FAPERJ');
+            const capesData = data.filter(item => item.Origem === 'CAPES');
+            const finepData = data.filter(item => item.Origem === 'FINEP');
+
+            // Renderizar dados da FAPERJ
+            faperjData.forEach(item => {
+                const row = `<tr>
+                    <td>${item.Título}</td>
+                    <td><a href="${item.Link}" target="_blank">Acessar</a></td>
+                    <td>${item.Origem}</td>
+                    <td>${item.Ano}</td>
+                    <td class="hidden-column">${item.Link}</td> <!-- Coluna Oculta -->
+                </tr>`;
+                faperjTableBody.innerHTML += row;
+            });
+
+            // Renderizar dados da CAPES
+            capesData.forEach(item => {
+                const row = `<tr>
+                    <td>${item.Título}</td>
+                    <td><a href="${item.Link}" target="_blank">Acessar</a></td>
+                    <td>${item.Origem}</td>
+                    <td>${item.Ano}</td>
+                    <td class="hidden-column">${item.Link}</td> <!-- Coluna Oculta -->
+                </tr>`;
+                capesTableBody.innerHTML += row;
+            });
+
+            // Renderizar dados da FINEP
+            finepData.forEach(item => {
+                const row = `<tr>
+                    <td>${item.Título}</td>
+                    <td><a href="${item.Link}" target="_blank">Acessar</a></td>
+                    <td>${item.Origem}</td>
+                    <td>${item.Ano}</td>
+                    <td class="hidden-column">${item.Link}</td> <!-- Coluna Oculta -->
+                </tr>`;
+                finepTableBody.innerHTML += row;
+            });
+
+            // Exibir a seção de resultados
+            resultsSection.style.display = 'block';
+        }
+
+        // Enviar dados ao backend
+        updateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const selectedYear = document.getElementById('ano').value;
+
+            if (!selectedYear) {
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Por favor, selecione um ano.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Confirmação',
+                text: "Deseja realmente atualizar os dados?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, atualizar!',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Atualizando...',
+                        text: 'Por favor, aguarde enquanto os dados são atualizados.',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading(),
+                    });
+
+                    fetch(`/api/get_data?ano=${selectedYear}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                Swal.fire({
+                                    title: 'Erro',
+                                    text: data.error,
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            } else {
+                                renderData(data);
+                                Swal.fire({
+                                    title: 'Sucesso',
+                                    text: 'Dados extraídos com sucesso.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            Swal.fire({
+                                title: 'Erro',
+                                text: 'Ocorreu um erro ao atualizar os dados.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                }
+            });
+        });
+
+        // Função para exportar para PDF
+        document.getElementById('exportPdfBtn').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Título
+            doc.setFontSize(18);
+            doc.text('Resultados da Extração', 14, 22);
+
+            // Função auxiliar para adicionar uma tabela
+            function addTable(tableId, title, headColor) {
+                doc.setFontSize(14);
+                doc.text(title, 14, doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 30);
+
+                const table = document.getElementById(tableId);
+                const tableData = [];
+
+                // Cabeçalhos
+                tableData.push(['Título', 'Link', 'Origem', 'Ano']);
+
+                // Dados
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    const titulo = cells[0].textContent.trim();
+                    const link = cells[4].textContent.trim(); // Coluna Oculta
+                    const origem = cells[2].textContent.trim();
+                    const ano = cells[3].textContent.trim();
+
+                    tableData.push([titulo, link, origem, ano]);
+                });
+
+                // Adicionar a tabela ao PDF
+                doc.autoTable({
+                    head: [tableData[0]],
+                    body: tableData.slice(1),
+                    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 5 : 30,
+                    theme: 'striped',
+                    headStyles: { fillColor: headColor },
+                    styles: { fontSize: 10 },
+                    columnStyles: {
+                        1: { cellWidth: 80 }, // Link
+                        0: { cellWidth: 60 }, // Título
+                        2: { cellWidth: 30 }, // Origem
+                        3: { cellWidth: 20 }  // Ano
+                    }
+                });
+            }
+
+            // Adicionar tabela FAPERJ
+            addTable('faperjTable', 'FAPERJ', [220, 53, 69]); // Vermelho
+
+            // Adicionar tabela CAPES
+            addTable('capesTable', 'CAPES', [40, 167, 69]); // Verde
+
+            // Adicionar tabela FINEP
+            addTable('finepTable', 'FINEP', [23, 162, 184]); // Azul
+
+            // Salvar PDF
+            doc.save('Resultados_Farejador_Editais.pdf');
+        });
+
+        // Função para exportar para Excel
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const wb = XLSX.utils.book_new();
+            wb.Props = {
+                Title: "Resultados Farejador de Editais",
+                Subject: "Exportação de Dados",
+                Author: "Farejador de Editais",
+                CreatedDate: new Date()
+            };
+            wb.SheetNames.push("FAPERJ");
+            wb.SheetNames.push("CAPES");
+            wb.SheetNames.push("FINEP"); // Adicionando a FINEP
+
+            // Função auxiliar para extrair dados e adicionar ao workbook
+            function addSheet(tableId, sheetName) {
+                const table = document.getElementById(tableId);
+                const data = [];
+
+                // Cabeçalhos
+                const headers = [];
+                table.querySelectorAll('thead th').forEach(th => {
+                    headers.push(th.textContent.trim());
+                });
+                data.push(['Título', 'Link', 'Origem', 'Ano']); // Excluir a coluna oculta
+
+                // Dados
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    const rowData = [];
+                    row.querySelectorAll('td').forEach((cell, index) => {
+                        if(index === 4) { // Coluna Oculta (URL)
+                            rowData.push(cell.textContent.trim());
+                        } else if(index < 4) { // Outras colunas
+                            rowData.push(cell.textContent.trim());
+                        }
+                    });
+                    if(rowData.some(cell => cell !== '')) {
+                        // Inserir apenas as primeiras 4 colunas e a URL
+                        data.push([rowData[0], rowData[4], rowData[2], rowData[3]]);
+                    }
+                });
+
+                // Reorganizar para ['Título', 'Link', 'Origem', 'Ano']
+                const finalData = data.map(row => {
+                    if(row.length === 4) {
+                        return [row[0], row[1], row[2], row[3]];
+                    }
+                    return row;
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(finalData);
+                wb.Sheets[sheetName] = ws;
+            }
+
+            // Adicionar planilhas
+            addSheet('faperjTable', 'FAPERJ');
+            addSheet('capesTable', 'CAPES');
+            addSheet('finepTable', 'FINEP'); // Adicionando a FINEP
+
+            // Gerar arquivo Excel
+            XLSX.writeFile(wb, "Resultados_Farejador_Editais.xlsx");
+        });
+    </script>
+</body>
+</html>
